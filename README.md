@@ -16,35 +16,26 @@ pip install mcp[server] ase
 
 ## 🏃 Running the Server
 
-Start the server using Python:
-
+To run as the modern HTTP server (Streamable HTTP):
 ```bash
 python main.py
 ```
 
-The server will be live at `http://localhost:8080`.
 
 ## 🧪 Testing the Server
 
-### Method 1: MCP Inspector (Recommended)
-The official way to test MCP tools interactively. 
-
-1. Start your server in one terminal:
-   ```bash
-   python main.py
-   ```
-
-2. In a second terminal, run the inspector pointing to the SSE URL:
-   ```bash
-   npx @modelcontextprotocol/inspector http://localhost:8080/sse
-   ```
+### Method 1: MCP Inspector
+```bash
+# Connect inspector to your running HTTP server
+npx @modelcontextprotocol/inspector http://localhost:8080/mcp
+```
 
 
 ### Method 2: Manual HTTP Check
-Since the server runs on HTTP/SSE, you can verify it's up with a simple `curl`:
+Since the server runs on HTTP, you can verify it's up with a simple `curl`:
 
 ```bash
-curl http://localhost:8080/health
+curl http://localhost:8080/mcp
 ```
 
 ## 🛠️ Available Tools
@@ -56,5 +47,5 @@ curl http://localhost:8080/health
 | `optimize_structure` | Structure optimization placeholder | `name` (MOF name) |
 
 ## 🔌 Integration
-To connect your agent to this server, use the SSE endpoint:
-`URL: http://localhost:8080/sse`
+To connect your agent to this server, use the Streamable HTTP endpoint:
+`URL: http://localhost:8080/mcp`
