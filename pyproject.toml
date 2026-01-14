@@ -1,15 +1,12 @@
 [project]
-name = "mof-scientific-server"
+name = "mof-tools"
 version = "1.0.0"
-description = "MCP Server for MOF simulation tools (Heavy Compute)"
+description = "Simplified MOF research tools via MCP"
 requires-python = ">=3.10"
 dependencies = [
-    "mcp[server]>=1.25.0",
-    "ase>=3.23.0",
-    "pymatgen>=2024.0.0",
-    "numpy>=1.26.0",
+    "mcp[server]",
+    "ase",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[project.scripts]
+mof-tools = "main:mcp.run"
