@@ -1,0 +1,41 @@
+# Tool Definitions for MOF Tools MCP Server
+# This file defines metadata for all available tools in the system
+
+tools:
+  - name: search_mofs
+    description: Search for Metal-Organic Frameworks by name or formula in the database
+    category: SEARCH
+    function_name: search_mofs
+    requires_ase: false
+    is_experimental: false
+    tags:
+      - mof
+      - database
+      - search
+      - query
+    version: "1.0.0"
+
+  - name: calculate_energy
+    description: Calculate the potential energy of a structure from CIF file content or path using ASE
+    category: CALCULATION
+    function_name: calculate_energy
+    requires_ase: true
+    is_experimental: false
+    tags:
+      - energy
+      - calculation
+      - ase
+      - cif
+    version: "1.0.0"
+
+  - name: optimize_structure
+    description: Perform structure optimization for a named MOF structure (placeholder implementation)
+    category: OPTIMIZATION
+    function_name: optimize_structure
+    requires_ase: false
+    is_experimental: true
+    tags:
+      - optimization
+      - structure
+      - geometry
+    version: "1.0.0"
