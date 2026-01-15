@@ -8,14 +8,14 @@ A **production-ready**, professional MCP server for Metal-Organic Framework (MOF
 - **📋 Formal Tool Registry**: Centralized tool management with metadata, categories, and tags
 - **🛡️ Production-Ready**: Industry-standard code with comprehensive error handling
 - **📊 Type Safety**: Full type hints throughout the codebase
-- **✅ Tested**: Comprehensive test suite with 34+ tests
+- **✅ Tested**: Comprehensive test suite with 33 tests
 
 ## 📁 Repository Structure
 
 - `main.py`: Server entrypoint with tool registration and initialization
 - `tools.py`: Core scientific tools with Pydantic validation models
 - `tool_registry.py`: Formal tool registration system with metadata management
-- `test_tools.py`: Comprehensive test suite for tools and validation
+- `tests/test_tools.py`: Comprehensive test suite for tools and validation
 - `pyproject.toml`: Dependency and package management
 
 ## 🚀 Installation
@@ -54,13 +54,13 @@ Run the comprehensive test suite:
 
 ```bash
 # Run all tests
-pytest test_tools.py -v
+pytest tests/test_tools.py -v
 
 # Run specific test class
-pytest test_tools.py::TestPydanticModels -v
+pytest tests/test_tools.py::TestPydanticModels -v
 
 # Run with coverage
-pytest test_tools.py --cov=tools --cov=tool_registry
+pytest tests/test_tools.py --cov=tools --cov=tool_registry
 ```
 
 ## 🧪 Testing the Server
@@ -189,7 +189,7 @@ The formal tool registry provides:
 - ✅ Input sanitization and validation
 - ✅ Consistent JSON output format
 - ✅ Detailed documentation
-- ✅ Test coverage (34+ tests)
+- ✅ Test coverage (33 tests)
 - ✅ Modular, maintainable code structure
 
 ## 📚 Development

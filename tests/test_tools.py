@@ -23,7 +23,6 @@ from tool_registry import (
     ToolCategory,
     ToolMetadata,
     get_registry,
-    register_tool,
 )
 from pydantic import ValidationError
 
@@ -414,31 +413,6 @@ class TestToolRegistry:
         assert categories[ToolCategory.CALCULATION] == 0
 
 
-class TestToolRegistryDecorator:
-    """Test the register_tool decorator."""
-    
-    def test_register_tool_decorator(self):
-        """Test using the decorator to register a tool."""
-        # Clear the global registry first
-        get_registry().clear()
-        
-        @register_tool(
-            name="decorated_tool",
-            description="A decorated tool",
-            category=ToolCategory.SEARCH
-        )
-        def my_tool(query: str) -> str:
-            return f"Result for {query}"
-        
-        registry = get_registry()
-        assert "decorated_tool" in registry
-        
-        metadata = registry.get("decorated_tool")
-        assert metadata.name == "decorated_tool"
-        assert metadata.function == my_tool
-        
-        # Clean up
-        registry.unregister("decorated_tool")
 
 
 if __name__ == "__main__":

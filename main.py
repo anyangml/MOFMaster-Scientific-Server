@@ -39,41 +39,43 @@ def register_tools_in_registry():
     """
     registry = get_registry()
     
-    # Register search_mofs tool
-    registry.register(
-        name="search_mofs",
-        description="Search for Metal-Organic Frameworks by name or formula in the database",
-        category=ToolCategory.SEARCH,
-        function=tools.search_mofs,
-        requires_ase=False,
-        is_experimental=False,
-        tags=["mof", "database", "search", "query"],
-        version="1.0.0"
-    )
+    # Define tools to register with their metadata
+    tool_definitions = [
+        {
+            "name": "search_mofs",
+            "description": "Search for Metal-Organic Frameworks by name or formula in the database",
+            "category": ToolCategory.SEARCH,
+            "function": tools.search_mofs,
+            "requires_ase": False,
+            "is_experimental": False,
+            "tags": ["mof", "database", "search", "query"],
+            "version": "1.0.0"
+        },
+        {
+            "name": "calculate_energy",
+            "description": "Calculate the potential energy of a structure from CIF file content or path using ASE",
+            "category": ToolCategory.CALCULATION,
+            "function": tools.calculate_energy,
+            "requires_ase": True,
+            "is_experimental": False,
+            "tags": ["energy", "calculation", "ase", "cif"],
+            "version": "1.0.0"
+        },
+        {
+            "name": "optimize_structure",
+            "description": "Perform structure optimization for a named MOF structure (placeholder implementation)",
+            "category": ToolCategory.OPTIMIZATION,
+            "function": tools.optimize_structure,
+            "requires_ase": False,
+            "is_experimental": True,
+            "tags": ["optimization", "structure", "geometry"],
+            "version": "1.0.0"
+        }
+    ]
     
-    # Register calculate_energy tool
-    registry.register(
-        name="calculate_energy",
-        description="Calculate the potential energy of a structure from CIF file content or path using ASE",
-        category=ToolCategory.CALCULATION,
-        function=tools.calculate_energy,
-        requires_ase=True,
-        is_experimental=False,
-        tags=["energy", "calculation", "ase", "cif"],
-        version="1.0.0"
-    )
-    
-    # Register optimize_structure tool
-    registry.register(
-        name="optimize_structure",
-        description="Perform structure optimization for a named MOF structure (placeholder implementation)",
-        category=ToolCategory.OPTIMIZATION,
-        function=tools.optimize_structure,
-        requires_ase=False,
-        is_experimental=True,  # Mark as experimental since it's a placeholder
-        tags=["optimization", "structure", "geometry"],
-        version="1.0.0"
-    )
+    # Register all tools using a loop
+    for tool_def in tool_definitions:
+        registry.register(**tool_def)
 
 
 def register_tools_with_mcp(mcp: FastMCP, registry: ToolRegistry):
