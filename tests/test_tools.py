@@ -415,6 +415,69 @@ class TestToolRegistry:
 
 
 
+class TestYAMLConfiguration:
+    """Test YAML configuration loading."""
+    
+    def test_load_tool_definitions(self):
+        """Test loading tool definitions from YAML."""
+        from main import load_tool_definitions
+        
+        definitions = load_tool_definitions()
+        
+        # Check that we loaded the correct number of tools
+        assert len(definitions) == 3
+        
+        # Check that all expected tools are present
+        tool_names = [d['name'] for d in definitions]
+        assert 'search_mofs' in tool_names
+        assert 'calculate_energy' in tool_names
+        assert 'optimize_structure' in tool_names
+    
+    def test_tool_definition_structure(self):
+        """Test that tool definitions have the correct structure."""
+        from main import load_tool_definitions
+        
+        definitions = load_tool_definitions()
+        
+        for tool_def in definitions:
+            # Check required fields
+            assert 'name' in tool_def
+            assert 'description' in tool_def
+            assert 'category' in tool_def
+            assert 'function_name' in tool_def
+            assert 'requires_ase' in tool_def
+            assert 'is_experimental' in tool_def
+            assert 'tags' in tool_def
+            assert 'version' in tool_def
+            
+            # Check types
+            assert isinstance(tool_def['name'], str)
+            assert isinstance(tool_def['description'], str)
+            assert isinstance(tool_def['category'], str)
+            assert isinstance(tool_def['function_name'], str)
+            assert isinstance(tool_def['requires_ase'], bool)
+            assert isinstance(tool_def['is_experimental'], bool)
+            assert isinstance(tool_def['tags'], list)
+            assert isinstance(tool_def['version'], str)
+    
+    def test_tool_registration_from_yaml(self):
+        """Test that tools can be registered from YAML definitions."""
+        from main import register_tools_in_registry
+        
+        # Clear registry first
+        registry = get_registry()
+        registry.clear()
+        
+        # Register tools from YAML
+        register_tools_in_registry()
+        
+        # Verify all tools were registered
+        assert len(registry) == 3
+        assert 'search_mofs' in registry
+        assert 'calculate_energy' in registry
+        assert 'optimize_structure' in registry
+
+
 if __name__ == "__main__":
     # Run tests with pytest
     pytest.main([__file__, "-v"])

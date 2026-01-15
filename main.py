@@ -6,11 +6,38 @@ Production-ready MCP server with formal tool registration and Pydantic validatio
 
 import sys
 from typing import List
+from pathlib import Path
+import yaml
 
 from mcp.server.fastmcp import FastMCP
 
 from tool_registry import ToolRegistry, ToolCategory, get_registry
 import tools
+
+
+def load_tool_definitions(yaml_path: str = "tool_definitions.yaml") -> List[dict]:
+    """
+    Load tool definitions from a YAML configuration file.
+    
+    Args:
+        yaml_path: Path to the YAML file containing tool definitions
+        
+    Returns:
+        List of tool definition dictionaries
+        
+    Raises:
+        FileNotFoundError: If the YAML file doesn't exist
+        yaml.YAMLError: If the YAML file is malformed
+    """
+    config_path = Path(__file__).parent / yaml_path
+    
+    if not config_path.exists():
+        raise FileNotFoundError(f"Tool definitions file not found: {config_path}")
+    
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    
+    return config.get('tools', [])
 
 
 def initialize_server() -> FastMCP:
@@ -35,47 +62,35 @@ def register_tools_in_registry():
     """
     Register all available tools in the formal tool registry.
     
-    This provides a centralized, organized way to manage tools with metadata.
+    Tool definitions are loaded from tool_definitions.yaml, which provides
+    a centralized, organized way to manage tools with metadata.
     """
     registry = get_registry()
     
-    # Define tools to register with their metadata
-    tool_definitions = [
-        {
-            "name": "search_mofs",
-            "description": "Search for Metal-Organic Frameworks by name or formula in the database",
-            "category": ToolCategory.SEARCH,
-            "function": tools.search_mofs,
-            "requires_ase": False,
-            "is_experimental": False,
-            "tags": ["mof", "database", "search", "query"],
-            "version": "1.0.0"
-        },
-        {
-            "name": "calculate_energy",
-            "description": "Calculate the potential energy of a structure from CIF file content or path using ASE",
-            "category": ToolCategory.CALCULATION,
-            "function": tools.calculate_energy,
-            "requires_ase": True,
-            "is_experimental": False,
-            "tags": ["energy", "calculation", "ase", "cif"],
-            "version": "1.0.0"
-        },
-        {
-            "name": "optimize_structure",
-            "description": "Perform structure optimization for a named MOF structure (placeholder implementation)",
-            "category": ToolCategory.OPTIMIZATION,
-            "function": tools.optimize_structure,
-            "requires_ase": False,
-            "is_experimental": True,
-            "tags": ["optimization", "structure", "geometry"],
-            "version": "1.0.0"
-        }
-    ]
+    # Load tool definitions from YAML configuration
+    tool_definitions = load_tool_definitions()
     
     # Register all tools using a loop
     for tool_def in tool_definitions:
-        registry.register(**tool_def)
+        # Get the function from the tools module using the function_name
+        function_name = tool_def.pop('function_name')
+        tool_function = getattr(tools, function_name)
+        
+        # Convert category string to ToolCategory enum
+        category_str = tool_def.pop('category')
+        category = ToolCategory[category_str]
+        
+        # Register the tool with the converted values
+        registry.register(
+            name=tool_def['name'],
+            description=tool_def['description'],
+            category=category,
+            function=tool_function,
+            requires_ase=tool_def['requires_ase'],
+            is_experimental=tool_def['is_experimental'],
+            tags=tool_def['tags'],
+            version=tool_def['version']
+        )
 
 
 def register_tools_with_mcp(mcp: FastMCP, registry: ToolRegistry):

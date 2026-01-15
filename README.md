@@ -15,6 +15,7 @@ A **production-ready**, professional MCP server for Metal-Organic Framework (MOF
 - `main.py`: Server entrypoint with tool registration and initialization
 - `tools.py`: Core scientific tools with Pydantic validation models
 - `tool_registry.py`: Formal tool registration system with metadata management
+- `tool_definitions.yaml`: YAML configuration file defining all available tools and their metadata
 - `tests/test_tools.py`: Comprehensive test suite for tools and validation
 - `pyproject.toml`: Dependency and package management
 
@@ -22,7 +23,7 @@ A **production-ready**, professional MCP server for Metal-Organic Framework (MOF
 
 ```bash
 # Install dependencies
-pip install mcp[server] ase pydantic
+pip install mcp[server] ase pydantic pyyaml
 ```
 
 ## 🏃 Running the Server
@@ -194,6 +195,25 @@ The formal tool registry provides:
 
 ## 📚 Development
 
+### Tool Configuration
+
+Tool definitions are stored in `tool_definitions.yaml` for easy configuration and management. This separates tool metadata from code logic.
+
+**Example tool definition:**
+```yaml
+tools:
+  - name: my_tool
+    description: Tool description
+    category: CALCULATION
+    function_name: my_tool  # Function name in tools.py
+    requires_ase: false
+    is_experimental: false
+    tags:
+      - tag1
+      - tag2
+    version: "1.0.0"
+```
+
 ### Adding a New Tool
 
 1. **Define Pydantic models** in `tools.py`:
@@ -218,15 +238,21 @@ def my_tool(param: str) -> str:
         # ... error handling ...
 ```
 
-3. **Register the tool** in `main.py`:
-```python
-registry.register(
-    name="my_tool",
-    description="Tool description",
-    category=ToolCategory.CALCULATION,
-    function=tools.my_tool,
-    tags=["tag1", "tag2"]
-)
+3. **Add the tool definition** to `tool_definitions.yaml`:
+```yaml
+  - name: my_tool
+    description: Tool description
+    category: CALCULATION
+    function_name: my_tool
+    requires_ase: false
+    is_experimental: false
+    tags:
+      - tag1
+      - tag2
+    version: "1.0.0"
+```
+
+The tool will be automatically registered when the server starts.
 ```
 
 4. **Add tests** in `test_tools.py`:
