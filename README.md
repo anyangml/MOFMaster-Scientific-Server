@@ -24,7 +24,7 @@ A **production-ready**, professional MCP server for Metal-Organic Framework (MOF
 
 ```bash
 # Install dependencies
-pip install mcp[server] ase pydantic pyyaml
+pip install mcp[server] ase pydantic pyyaml bohr-agent-sdk
 ```
 
 ## 🏃 Running the Server
@@ -34,7 +34,7 @@ To run as the modern HTTP server (Streamable HTTP):
 python main.py
 ```
 
-The server will start on `http://0.0.0.0:8080` and display registered tools information:
+The server will start on `http://0.0.0.0:50001` and display registered tools information:
 
 ```
 === MOF Tools Server ===
@@ -68,19 +68,24 @@ PYTHONPATH=. pytest tests/test_tools_load.py -v
 ### Method 1: MCP Inspector
 ```bash
 # Connect inspector to your running HTTP server
-npx @modelcontextprotocol/inspector http://localhost:8080/mcp
+npx @modelcontextprotocol/inspector http://localhost:50001/mcp
 ```
 
 ### Method 2: Manual HTTP Check
 Since the server runs on HTTP, you can verify it's up with a simple `curl`:
 
 ```bash
-curl http://localhost:8080/mcp
+curl http://localhost:50001/mcp
 ```
 
 ## 🛠️ Available Tools
 
 All tools return validated JSON responses with comprehensive error handling.
+
+Bohr Agent SDK integration also provides asynchronous job management tools:
+- `submit_`: Submit a calculation job
+- `query_job_status`: Check job progress
+- `get_job_results`: Retrieve completed job data
 
 ### search_mofs
 
@@ -157,7 +162,7 @@ All tools return validated JSON responses with comprehensive error handling.
 
 To connect your agent to this server, use the Streamable HTTP endpoint:
 
-**URL**: `http://localhost:8080/mcp`
+**URL**: `http://localhost:50001/mcp`
 
 ## 🏗️ Architecture
 

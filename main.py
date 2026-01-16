@@ -52,7 +52,7 @@ def initialize_server() -> FastMCP:
     mcp = FastMCP(
         "mof-tools",
         host="0.0.0.0",
-        port=8080,
+        port=50001,
         log_level="ERROR"  # Suppress info logs that might corrupt the protocol stream
     )
     
