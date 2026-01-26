@@ -12,4 +12,4 @@ dependencies = [
 ]
 
 [project.scripts]
-mof-tools = "main:mcp.run"
+mof-tools = "main:run_server"

@@ -41,22 +41,22 @@ def load_tool_definitions(yaml_path: str = "tool_definitions.yaml") -> List[dict
     return config.get('tools', [])
 
 
-def initialize_server() -> FastMCP:
+def initialize_server() -> CalculationMCPServer:
     """
-    Initialize the FastMCP server with production settings.
+    Initialize the CalculationMCPServer with production settings.
     
     Returns:
-        Configured FastMCP server instance
+        Configured CalculationMCPServer instance
     """
-    # Initialize server with host/port defaults for HTTP transport
-    mcp = FastMCP(
+    # CalculationMCPServer will initialize its own FastMCP instance internally
+    calc_server = CalculationMCPServer(
         "mof-tools",
         host="0.0.0.0",
         port=50001,
-        log_level="ERROR"  # Suppress info logs that might corrupt the protocol stream
+        log_level="ERROR"
     )
     
-    return mcp
+    return calc_server
 
 
 def register_tools_in_registry():
@@ -92,14 +92,13 @@ def register_tools_in_registry():
         )
 
 
-def register_tools_with_mcp(mcp: FastMCP, registry: ToolRegistry):
+def register_tools_with_mcp(calc_server: CalculationMCPServer, registry: ToolRegistry):
     """
-    Register tools from the registry with the FastMCP server using CalculationMCPServer.
+    Register tools from the registry with the CalculationMCPServer.
     
     This wrapper automatically adds "submit_", "query_job_status", and 
     "get_job_results" tools required by the Bohr Agent SDK.
     """
-    calc_server = CalculationMCPServer(mcp)
     for tool_metadata in registry.get_all():
         # Register each tool function with CalculationMCPServer
         calc_server.tool()(tool_metadata.function)
@@ -130,17 +129,23 @@ def print_registered_tools(registry: ToolRegistry):
 
 
 # Initialize server and registry
-mcp = initialize_server()
+calc_server = initialize_server()
 register_tools_in_registry()
-calc_server = register_tools_with_mcp(mcp, get_registry())
+register_tools_with_mcp(calc_server, get_registry())
 
 
-if __name__ == "__main__":
+def run_server():
+    """Main entry point for running the server."""
     # Print registered tools info
     print_registered_tools(get_registry())
     
     # Use calc_server.run to include health check endpoint and correct tool patches
+    # CalculationMCPServer.run handles host and port settings internally if passed correctly
     if len(sys.argv) == 1:
-        calc_server.run(transport="streamable-http")
+        calc_server.run(transport="streamable-http", host="0.0.0.0", port=50001)
     else:
-        calc_server.run()
+        calc_server.run(host="0.0.0.0", port=50001)
+
+
+if __name__ == "__main__":
+    run_server()
