@@ -186,6 +186,24 @@ class TestGeometryOptimization:
         assert parsed["success"] is False
         assert parsed["error"] is not None
 
+    def test_optimize_geometry_relax_cell(self):
+        """Test geometry optimization with cell relaxation."""
+        atoms_dict = self.get_test_atoms_dict()
+        result = optimize_geometry(atoms_dict, relax_cell=True, max_steps=2)
+        parsed = json.loads(result)
+        
+        # This may fail if FrechetCellFilter is not available, but logic is correct
+        assert parsed["success"] is True
+        assert "cell" in parsed["optimized_atoms_dict"]
+
+    def test_optimize_geometry_fix_symmetry(self):
+        """Test geometry optimization with fix_symmetry."""
+        atoms_dict = self.get_test_atoms_dict()
+        result = optimize_geometry(atoms_dict, fix_symmetry=True, max_steps=2)
+        parsed = json.loads(result)
+        
+        assert parsed["success"] is True
+
 
 class TestToolRegistry:
     """Test tool registry functionality."""

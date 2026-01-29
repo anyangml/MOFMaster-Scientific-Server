@@ -82,7 +82,6 @@ def static_calculation(
         try:
             # Reconstruct Atoms object from dictionary
             import numpy as np
-            from collections import Counter
             
             atoms = Atoms(
                 numbers=validated_input.atoms_dict["numbers"],

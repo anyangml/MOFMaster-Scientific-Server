@@ -17,10 +17,6 @@ class ParseStructureInput(BaseModel):
         min_length=1,
         description="Structure file content as string or file path"
     )
-    format: Optional[str] = Field(
-        None,
-        description="Structure format (cif, xyz, vasp). Auto-detected if not provided"
-    )
     
     @field_validator('data')
     @classmethod
@@ -28,18 +24,6 @@ class ParseStructureInput(BaseModel):
         """Validate structure data input."""
         if not v.strip():
             raise ValueError("Data cannot be empty")
-        return v
-    
-    @field_validator('format')
-    @classmethod
-    def validate_format(cls, v: Optional[str]) -> Optional[str]:
-        """Validate format string."""
-        if v is not None:
-            allowed_formats = ['cif', 'xyz', 'vasp', 'poscar']
-            v_lower = v.lower()
-            if v_lower not in allowed_formats:
-                raise ValueError(f"Format must be one of {allowed_formats}")
-            return v_lower
         return v
 
 
@@ -53,13 +37,12 @@ class ParseStructureOutput(BaseModel):
     message: str = Field(..., description="Human-readable result message")
 
 
-def parse_structure(data: str, format: Optional[str] = None) -> str:
+def parse_structure(data: str) -> str:
     """
-    Load and validate different structure formats into ASE Atoms object.
+    Load and validate structure data into ASE Atoms object.
     
     Args:
         data: Structure file content as string or file path
-        format: Structure format (cif, xyz, vasp). Auto-detected if not provided
         
     Returns:
         JSON string containing parsed structure with validation
@@ -69,20 +52,20 @@ def parse_structure(data: str, format: Optional[str] = None) -> str:
     """
     try:
         # Validate input
-        validated_input = ParseStructureInput(data=data, format=format)
+        validated_input = ParseStructureInput(data=data)
         
         # Parse structure
         try:
+            import os
             # Determine if data is file content or path
-            is_file_content = "\n" in validated_input.data or len(validated_input.data) > 500
+            is_file_content = "\n" in validated_input.data or not os.path.isfile(validated_input.data)
             
             if is_file_content:
                 fileobj = StringIO(validated_input.data)
-                file_format = validated_input.format if validated_input.format else "cif"
-                atoms = ase.io.read(fileobj, format=file_format)
+                atoms = ase.io.read(fileobj)
             else:
                 # Assume it's a file path
-                atoms = ase.io.read(validated_input.data, format=validated_input.format)
+                atoms = ase.io.read(validated_input.data)
             
             # Convert Atoms object to dictionary for JSON serialization
             atoms_dict = {

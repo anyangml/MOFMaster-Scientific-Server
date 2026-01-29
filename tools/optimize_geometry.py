@@ -6,7 +6,7 @@ Perform structure relaxation for MOFs using DPA machine-learning force fields.
 
 from .base import (
     BaseModel, Field, field_validator, ValidationError,
-    Optional, Atoms, EMT, BFGS, LBFGS, FIRE
+    Optional, Atoms, EMT, BFGS, LBFGS, FIRE, FrechetCellFilter, FixSymmetry
 )
 
 
@@ -33,7 +33,11 @@ class OptimizeGeometryInput(BaseModel):
     )
     relax_cell: bool = Field(
         False,
-        description="Whether to relax lattice parameters (requires model support)"
+        description="Whether to relax lattice parameters"
+    )
+    fix_symmetry: bool = Field(
+        True,
+        description="Whether to maintain symmetry during optimization"
     )
     
     @field_validator('optimizer')
@@ -70,7 +74,8 @@ def optimize_geometry(
     fmax: float = 0.05,
     max_steps: int = 200,
     optimizer: str = "BFGS",
-    relax_cell: bool = False
+    relax_cell: bool = False,
+    fix_symmetry: bool = True
 ) -> str:
     """
     Perform geometry optimization using DPA machine-learning force fields.
@@ -98,7 +103,8 @@ def optimize_geometry(
             fmax=fmax,
             max_steps=max_steps,
             optimizer=optimizer,
-            relax_cell=relax_cell
+            relax_cell=relax_cell,
+            fix_symmetry=fix_symmetry
         )
         
         # Perform optimization
@@ -128,8 +134,17 @@ def optimize_geometry(
                 "FIRE": FIRE
             }[validated_input.optimizer]
             
+            # Apply constraints and filters
+            if validated_input.fix_symmetry and FixSymmetry is not None:
+                atoms.set_constraint(FixSymmetry(atoms))
+            
+            # Use FrechetCellFilter for cell relaxation if requested
+            target_atoms = atoms
+            if validated_input.relax_cell:
+                target_atoms = FrechetCellFilter(atoms)
+            
             # Run optimization
-            opt = optimizer_class(atoms)
+            opt = optimizer_class(target_atoms)
             opt.run(fmax=validated_input.fmax, steps=validated_input.max_steps)
             
             # Get final results
