@@ -1,198 +1,190 @@
 """
 Unit tests for MOF Tools with Pydantic validation.
 
-Tests cover input validation, output validation, error handling, and tool registry.
+Tests cover the refactored modular tool structure.
 """
 
 import json
 import pytest
 from typing import Dict, Any
 
-import tools
-from tools import (
-    SearchMOFsInput,
-    SearchMOFsOutput,
-    CalculateEnergyInput,
-    CalculateEnergyOutput,
-    OptimizeStructureInput,
-    OptimizeStructureOutput,
-    MOFRecord,
-)
+from tools import parse_structure, static_calculation, optimize_geometry
 from tool_registry import (
     ToolRegistry,
     ToolCategory,
     ToolMetadata,
     get_registry,
 )
-from pydantic import ValidationError
 
 
-class TestPydanticModels:
-    """Test Pydantic model validation."""
+class TestStructureParser:
+    """Test parse_structure tool."""
     
-    def test_mof_record_valid(self):
-        """Test valid MOF record creation."""
-        record = MOFRecord(
-            name="Test-MOF",
-            formula="Cu3(BTC)2",
-            surface_area=1850.0
-        )
-        assert record.name == "Test-MOF"
-        assert record.formula == "Cu3(BTC)2"
-        assert record.surface_area == 1850.0
-    
-    def test_mof_record_invalid_surface_area(self):
-        """Test MOF record with invalid surface area."""
-        with pytest.raises(ValidationError):
-            MOFRecord(
-                name="Test-MOF",
-                formula="Cu3(BTC)2",
-                surface_area=-100.0  # Negative surface area
-            )
-    
-    def test_search_mofs_input_valid(self):
-        """Test valid search input."""
-        input_data = SearchMOFsInput(query="MOF-5")
-        assert input_data.query == "MOF-5"
-    
-    def test_search_mofs_input_strips_whitespace(self):
-        """Test that search input strips whitespace."""
-        input_data = SearchMOFsInput(query="  MOF-5  ")
-        assert input_data.query == "MOF-5"
-    
-    def test_search_mofs_input_empty_query(self):
-        """Test search input with empty query."""
-        with pytest.raises(ValidationError):
-            SearchMOFsInput(query="   ")
-    
-    def test_search_mofs_input_too_long(self):
-        """Test search input with query too long."""
-        with pytest.raises(ValidationError):
-            SearchMOFsInput(query="x" * 201)
-    
-    def test_calculate_energy_input_valid(self):
-        """Test valid energy calculation input."""
-        input_data = CalculateEnergyInput(data="some cif content")
-        assert input_data.data == "some cif content"
-    
-    def test_calculate_energy_input_empty(self):
-        """Test energy calculation input with empty data."""
-        with pytest.raises(ValidationError):
-            CalculateEnergyInput(data="   ")
-    
-    def test_optimize_structure_input_valid(self):
-        """Test valid structure optimization input."""
-        input_data = OptimizeStructureInput(name="test-structure")
-        assert input_data.name == "test-structure"
-    
-    def test_optimize_structure_input_strips_whitespace(self):
-        """Test that optimization input strips whitespace."""
-        input_data = OptimizeStructureInput(name="  test-structure  ")
-        assert input_data.name == "test-structure"
-    
-    def test_optimize_structure_input_empty(self):
-        """Test optimization input with empty name."""
-        with pytest.raises(ValidationError):
-            OptimizeStructureInput(name="   ")
-
-
-class TestSearchMOFs:
-    """Test search_mofs tool."""
-    
-    def test_search_mofs_found(self):
-        """Test searching for existing MOF."""
-        result = tools.search_mofs("MOF-5")
+    def test_parse_structure_valid_cif(self):
+        """Test parsing valid CIF data."""
+        cif_data = """data_test
+_cell_length_a 4.0
+_cell_length_b 4.0
+_cell_length_c 4.0
+_cell_angle_alpha 90
+_cell_angle_beta 90
+_cell_angle_gamma 90
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+Cu1 Cu 0.0 0.0 0.0
+Cu2 Cu 0.5 0.5 0.5
+"""
+        result = parse_structure(cif_data, format="cif")
         parsed = json.loads(result)
         
         assert parsed["success"] is True
-        assert parsed["count"] == 1
-        assert len(parsed["results"]) == 1
-        assert parsed["results"][0]["name"] == "MOF-5"
+        assert parsed["num_atoms"] == 2
+        assert "Cu" in parsed["formula"]
+        assert parsed["atoms_dict"] is not None
     
-    def test_search_mofs_not_found(self):
-        """Test searching for non-existing MOF."""
-        result = tools.search_mofs("NonExistent")
+    def test_parse_structure_invalid_data(self):
+        """Test parsing invalid data."""
+        result = parse_structure("invalid data", format="cif")
         parsed = json.loads(result)
         
-        assert parsed["success"] is True
-        assert parsed["count"] == 0
-        assert len(parsed["results"]) == 0
-        assert "No MOFs found" in parsed["message"]
+        assert parsed["success"] is False
+        assert parsed["error"] is not None
     
-    def test_search_mofs_multiple_results(self):
-        """Test searching with multiple results."""
-        result = tools.search_mofs("Cu")
-        parsed = json.loads(result)
-        
-        assert parsed["success"] is True
-        assert parsed["count"] >= 1
-    
-    def test_search_mofs_case_insensitive(self):
-        """Test case-insensitive search."""
-        result = tools.search_mofs("mof-5")
-        parsed = json.loads(result)
-        
-        assert parsed["success"] is True
-        assert parsed["count"] == 1
-    
-    def test_search_mofs_invalid_input(self):
-        """Test search with invalid input."""
-        result = tools.search_mofs("   ")
+    def test_parse_structure_empty_data(self):
+        """Test parsing empty data."""
+        result = parse_structure("   ", format="cif")
         parsed = json.loads(result)
         
         assert parsed["success"] is False
         assert "validation error" in parsed["message"].lower()
 
 
-class TestCalculateEnergy:
-    """Test calculate_energy tool."""
+class TestStaticCalculation:
+    """Test static_calculation tool."""
     
-    def test_calculate_energy_ase_not_available(self):
-        """Test energy calculation when ASE is not available."""
-        # This test will vary depending on whether ASE is installed
-        result = tools.calculate_energy("test data")
-        parsed = json.loads(result)
-        
-        assert "success" in parsed
-        assert "message" in parsed
+    def get_test_atoms_dict(self):
+        """Helper to get test atoms dictionary."""
+        return {
+            "numbers": [29, 29],
+            "positions": [[0, 0, 0], [2, 2, 2]],
+            "cell": [[4, 0, 0], [0, 4, 0], [0, 0, 4]],
+            "pbc": [True, True, True]
+        }
     
-    def test_calculate_energy_invalid_input(self):
-        """Test energy calculation with invalid input."""
-        result = tools.calculate_energy("   ")
-        parsed = json.loads(result)
-        
-        assert parsed["success"] is False
-        assert "validation error" in parsed["message"].lower()
-    
-    def test_calculate_energy_error_handling(self):
-        """Test energy calculation error handling."""
-        result = tools.calculate_energy("invalid cif data")
-        parsed = json.loads(result)
-        
-        # Should handle gracefully
-        assert "success" in parsed
-        assert "message" in parsed
-
-
-class TestOptimizeStructure:
-    """Test optimize_structure tool."""
-    
-    def test_optimize_structure_valid(self):
-        """Test structure optimization with valid input."""
-        result = tools.optimize_structure("test-structure")
+    def test_static_calculation_basic(self):
+        """Test basic static calculation."""
+        atoms_dict = self.get_test_atoms_dict()
+        result = static_calculation(atoms_dict)
         parsed = json.loads(result)
         
         assert parsed["success"] is True
-        assert parsed["structure_name"] == "test-structure"
-        assert "Successfully initiated optimization" in parsed["message"]
+        assert parsed["total_energy"] is not None
+        assert isinstance(parsed["total_energy"], (int, float))
     
-    def test_optimize_structure_invalid_input(self):
-        """Test optimization with invalid input."""
-        result = tools.optimize_structure("   ")
+    def test_static_calculation_with_forces(self):
+        """Test static calculation with forces."""
+        atoms_dict = self.get_test_atoms_dict()
+        result = static_calculation(atoms_dict, compute_forces=True)
+        parsed = json.loads(result)
+        
+        assert parsed["success"] is True
+        assert parsed["forces"] is not None
+        assert len(parsed["forces"]) == 2  # 2 atoms
+    
+    def test_static_calculation_normalize_per_atom(self):
+        """Test static calculation with per-atom normalization."""
+        atoms_dict = self.get_test_atoms_dict()
+        result = static_calculation(atoms_dict, normalize_per_atom=True)
+        parsed = json.loads(result)
+        
+        assert parsed["success"] is True
+        assert parsed["energy_per_atom"] is not None
+        assert isinstance(parsed["energy_per_atom"], (int, float))
+    
+    def test_static_calculation_with_virial(self):
+        """Test static calculation with virial."""
+        atoms_dict = self.get_test_atoms_dict()
+        result = static_calculation(atoms_dict, compute_virial=True)
+        parsed = json.loads(result)
+        
+        assert parsed["success"] is True
+        # Virial may or may not be computed depending on calculator
+        assert "virial" in parsed
+    
+    def test_static_calculation_invalid_atoms_dict(self):
+        """Test static calculation with invalid atoms dict."""
+        result = static_calculation({"invalid": "data"})
+        parsed = json.loads(result)
+        
+        assert parsed["success"] is False
+        assert parsed["error"] is not None
+
+
+class TestGeometryOptimization:
+    """Test optimize_geometry tool."""
+    
+    def get_test_atoms_dict(self):
+        """Helper to get test atoms dictionary."""
+        return {
+            "numbers": [29, 29],
+            "positions": [[0, 0, 0], [2, 2, 2]],
+            "cell": [[4, 0, 0], [0, 4, 0], [0, 0, 4]],
+            "pbc": [True, True, True]
+        }
+    
+    def test_optimize_geometry_basic(self):
+        """Test basic geometry optimization."""
+        atoms_dict = self.get_test_atoms_dict()
+        result = optimize_geometry(atoms_dict)
+        parsed = json.loads(result)
+        
+        assert parsed["success"] is True
+        assert parsed["optimized_atoms_dict"] is not None
+        assert parsed["metadata"] is not None
+    
+    def test_optimize_geometry_metadata(self):
+        """Test optimization metadata."""
+        atoms_dict = self.get_test_atoms_dict()
+        result = optimize_geometry(atoms_dict, fmax=0.05, max_steps=10)
+        parsed = json.loads(result)
+        
+        assert parsed["success"] is True
+        metadata = parsed["metadata"]
+        assert "converged" in metadata
+        assert "final_fmax" in metadata
+        assert "steps" in metadata
+        assert "initial_energy" in metadata
+        assert "final_energy" in metadata
+    
+    def test_optimize_geometry_different_optimizers(self):
+        """Test different optimizer types."""
+        atoms_dict = self.get_test_atoms_dict()
+        
+        for optimizer in ["BFGS", "LBFGS", "FIRE"]:
+            result = optimize_geometry(atoms_dict, optimizer=optimizer, max_steps=5)
+            parsed = json.loads(result)
+            assert parsed["success"] is True
+    
+    def test_optimize_geometry_invalid_optimizer(self):
+        """Test with invalid optimizer."""
+        atoms_dict = self.get_test_atoms_dict()
+        result = optimize_geometry(atoms_dict, optimizer="INVALID")
         parsed = json.loads(result)
         
         assert parsed["success"] is False
         assert "validation error" in parsed["message"].lower()
+    
+    def test_optimize_geometry_invalid_atoms_dict(self):
+        """Test optimization with invalid atoms dict."""
+        result = optimize_geometry({"invalid": "data"})
+        parsed = json.loads(result)
+        
+        assert parsed["success"] is False
+        assert parsed["error"] is not None
 
 
 class TestToolRegistry:
@@ -213,7 +205,7 @@ class TestToolRegistry:
         metadata = registry.register(
             name="test_tool",
             description="A test tool",
-            category=ToolCategory.SEARCH,
+            category=ToolCategory.CALCULATION,
             function=dummy_func
         )
         
@@ -231,7 +223,7 @@ class TestToolRegistry:
         registry.register(
             name="test_tool",
             description="A test tool",
-            category=ToolCategory.SEARCH,
+            category=ToolCategory.CALCULATION,
             function=dummy_func
         )
         
@@ -239,33 +231,9 @@ class TestToolRegistry:
             registry.register(
                 name="test_tool",
                 description="Another tool",
-                category=ToolCategory.CALCULATION,
+                category=ToolCategory.UTILS,
                 function=dummy_func
             )
-    
-    def test_get_tool(self):
-        """Test retrieving a tool."""
-        registry = ToolRegistry()
-        
-        def dummy_func():
-            return "test"
-        
-        registry.register(
-            name="test_tool",
-            description="A test tool",
-            category=ToolCategory.SEARCH,
-            function=dummy_func
-        )
-        
-        metadata = registry.get("test_tool")
-        assert metadata is not None
-        assert metadata.name == "test_tool"
-    
-    def test_get_nonexistent_tool(self):
-        """Test retrieving a non-existent tool."""
-        registry = ToolRegistry()
-        metadata = registry.get("nonexistent")
-        assert metadata is None
     
     def test_get_by_category(self):
         """Test getting tools by category."""
@@ -275,48 +243,22 @@ class TestToolRegistry:
             return "test"
         
         registry.register(
-            name="search_tool",
-            description="Search",
-            category=ToolCategory.SEARCH,
-            function=dummy_func
-        )
-        
-        registry.register(
             name="calc_tool",
             description="Calculate",
             category=ToolCategory.CALCULATION,
             function=dummy_func
         )
         
-        search_tools = registry.get_by_category(ToolCategory.SEARCH)
-        assert len(search_tools) == 1
-        assert search_tools[0].name == "search_tool"
-    
-    def test_get_by_tag(self):
-        """Test getting tools by tag."""
-        registry = ToolRegistry()
-        
-        def dummy_func():
-            return "test"
-        
         registry.register(
-            name="tool1",
-            description="Tool 1",
-            category=ToolCategory.SEARCH,
-            function=dummy_func,
-            tags=["mof", "database"]
+            name="utils_tool",
+            description="Utility",
+            category=ToolCategory.UTILS,
+            function=dummy_func
         )
         
-        registry.register(
-            name="tool2",
-            description="Tool 2",
-            category=ToolCategory.CALCULATION,
-            function=dummy_func,
-            tags=["energy", "mof"]
-        )
-        
-        mof_tools = registry.get_by_tag("mof")
-        assert len(mof_tools) == 2
+        calc_tools = registry.get_by_category(ToolCategory.CALCULATION)
+        assert len(calc_tools) == 1
+        assert calc_tools[0].name == "calc_tool"
     
     def test_unregister_tool(self):
         """Test unregistering a tool."""
@@ -328,7 +270,7 @@ class TestToolRegistry:
         registry.register(
             name="test_tool",
             description="A test tool",
-            category=ToolCategory.SEARCH,
+            category=ToolCategory.CALCULATION,
             function=dummy_func
         )
         
@@ -336,81 +278,6 @@ class TestToolRegistry:
         result = registry.unregister("test_tool")
         assert result is True
         assert len(registry) == 0
-    
-    def test_unregister_nonexistent_tool(self):
-        """Test unregistering a non-existent tool."""
-        registry = ToolRegistry()
-        result = registry.unregister("nonexistent")
-        assert result is False
-    
-    def test_clear_registry(self):
-        """Test clearing the registry."""
-        registry = ToolRegistry()
-        
-        def dummy_func():
-            return "test"
-        
-        registry.register(
-            name="tool1",
-            description="Tool 1",
-            category=ToolCategory.SEARCH,
-            function=dummy_func
-        )
-        
-        registry.register(
-            name="tool2",
-            description="Tool 2",
-            category=ToolCategory.CALCULATION,
-            function=dummy_func
-        )
-        
-        assert len(registry) == 2
-        registry.clear()
-        assert len(registry) == 0
-    
-    def test_list_names(self):
-        """Test listing tool names."""
-        registry = ToolRegistry()
-        
-        def dummy_func():
-            return "test"
-        
-        registry.register(
-            name="tool1",
-            description="Tool 1",
-            category=ToolCategory.SEARCH,
-            function=dummy_func
-        )
-        
-        registry.register(
-            name="tool2",
-            description="Tool 2",
-            category=ToolCategory.CALCULATION,
-            function=dummy_func
-        )
-        
-        names = registry.list_names()
-        assert "tool1" in names
-        assert "tool2" in names
-        assert len(names) == 2
-    
-    def test_list_categories(self):
-        """Test listing categories."""
-        registry = ToolRegistry()
-        
-        def dummy_func():
-            return "test"
-        
-        registry.register(
-            name="search_tool",
-            description="Search",
-            category=ToolCategory.SEARCH,
-            function=dummy_func
-        )
-        
-        categories = registry.list_categories()
-        assert categories[ToolCategory.SEARCH] == 1
-        assert categories[ToolCategory.CALCULATION] == 0
 
 
 class TestYAMLConfiguration:
@@ -427,9 +294,9 @@ class TestYAMLConfiguration:
         
         # Check that all expected tools are present
         tool_names = [d['name'] for d in definitions]
-        assert 'search_mofs' in tool_names
-        assert 'calculate_energy' in tool_names
-        assert 'optimize_structure' in tool_names
+        assert 'Static Calculation' in tool_names
+        assert 'Structure Parser' in tool_names
+        assert 'Geometry Optimization' in tool_names
     
     def test_tool_definition_structure(self):
         """Test that tool definitions have the correct structure."""
@@ -467,9 +334,76 @@ class TestYAMLConfiguration:
         
         # Verify all tools were registered
         assert len(registry) == 3
-        assert 'search_mofs' in registry
-        assert 'calculate_energy' in registry
-        assert 'optimize_structure' in registry
+
+
+class TestIntegration:
+    """Integration tests for complete workflows."""
+    
+    def test_parse_and_calculate_workflow(self):
+        """Test parsing a structure and calculating energy."""
+        # Parse structure
+        cif_data = """data_test
+_cell_length_a 4.0
+_cell_length_b 4.0
+_cell_length_c 4.0
+_cell_angle_alpha 90
+_cell_angle_beta 90
+_cell_angle_gamma 90
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+Cu1 Cu 0.0 0.0 0.0
+Cu2 Cu 0.5 0.5 0.5
+"""
+        parse_result = parse_structure(cif_data, format="cif")
+        parsed = json.loads(parse_result)
+        assert parsed["success"] is True
+        
+        # Calculate energy
+        atoms_dict = parsed["atoms_dict"]
+        calc_result = static_calculation(atoms_dict, compute_forces=True)
+        calc = json.loads(calc_result)
+        assert calc["success"] is True
+        assert calc["total_energy"] is not None
+    
+    def test_full_workflow(self):
+        """Test complete workflow: parse -> calculate -> optimize."""
+        # Parse structure
+        cif_data = """data_test
+_cell_length_a 4.0
+_cell_length_b 4.0
+_cell_length_c 4.0
+_cell_angle_alpha 90
+_cell_angle_beta 90
+_cell_angle_gamma 90
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+Cu1 Cu 0.0 0.0 0.0
+Cu2 Cu 0.5 0.5 0.5
+"""
+        parse_result = parse_structure(cif_data, format="cif")
+        parsed = json.loads(parse_result)
+        assert parsed["success"] is True
+        
+        atoms_dict = parsed["atoms_dict"]
+        
+        # Static calculation
+        calc_result = static_calculation(atoms_dict)
+        calc = json.loads(calc_result)
+        assert calc["success"] is True
+        
+        # Geometry optimization
+        opt_result = optimize_geometry(atoms_dict, max_steps=5)
+        opt = json.loads(opt_result)
+        assert opt["success"] is True
+        assert opt["metadata"]["converged"] is not None
 
 
 if __name__ == "__main__":

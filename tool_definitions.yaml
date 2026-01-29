@@ -2,34 +2,36 @@
 # This file defines metadata for all available tools in the system
 
 tools:
-  - name: search_mofs
-    description: Search for Metal-Organic Frameworks by name or formula in the database
-    category: SEARCH
-    function_name: search_mofs
-    tags:
-      - mof
-      - database
-      - search
-      - query
-    version: "1.0.0"
-
-  - name: calculate_energy
-    description: Calculate the potential energy of a structure from CIF file content or path using ASE
+  - name: Static Calculation
+    description: Perform static energy evaluation for MOF structures using pretrained DPA model without modifying atomic geometry. Computes total energy, forces, and virial directly from the DPA model in a non-iterative manner.
     category: CALCULATION
-    function_name: calculate_energy
+    function_name: static_calculation
     tags:
       - energy
-      - calculation
-      - ase
-      - cif
+      - static
+      - dpa
+      - force
+      - virial
     version: "1.0.0"
 
-  - name: optimize_structure
-    description: Perform structure optimization for a named MOF structure (placeholder implementation)
-    category: OPTIMIZATION
-    function_name: optimize_structure
+  - name: Structure Parser
+    description: Load and validate different structure formats (cif, xyz, POSCAR) into a standard ASE Atoms object using ASE io read method
+    category: UTILS
+    function_name: parse_structure
+    tags:
+      - parser
+      - structure
+      - read
+    version: "1.0.0"
+
+  - name: Geometry Optimization
+    description: Perform structure relaxation for MOFs using DPA machine-learning force fields with ASE-based optimizer backend and configurable convergence criteria
+    category: CALCULATION
+    function_name: optimize_geometry
     tags:
       - optimization
-      - structure
       - geometry
+      - structure
+      - dpa
+      - relaxation
     version: "1.0.0"

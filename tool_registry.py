@@ -5,9 +5,8 @@ from enum import Enum
 
 class ToolCategory(str, Enum):
     """Categories for organizing tools."""
-    SEARCH = "search"
     CALCULATION = "calculation"
-    OPTIMIZATION = "optimization"
+    UTILS = "utils"
     ANALYSIS = "analysis"
 
 
