@@ -6,7 +6,7 @@ Perform structure relaxation for MOFs using DPA machine-learning force fields.
 
 from .base import (
     BaseModel, Field, field_validator, ValidationError,
-    Optional, ASE_AVAILABLE, Atoms, EMT, BFGS, LBFGS, FIRE
+    Optional, Atoms, EMT, BFGS, LBFGS, FIRE
 )
 
 
@@ -100,17 +100,6 @@ def optimize_geometry(
             optimizer=optimizer,
             relax_cell=relax_cell
         )
-        
-        # Check ASE availability
-        if not ASE_AVAILABLE:
-            output = OptimizeGeometryOutput(
-                success=False,
-                optimized_atoms_dict=None,
-                metadata=None,
-                error="ASE library not installed",
-                message="Error: ASE library not installed. Install with: pip install ase"
-            )
-            return output.model_dump_json(indent=2)
         
         # Perform optimization
         try:

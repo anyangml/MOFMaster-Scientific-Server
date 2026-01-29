@@ -7,7 +7,7 @@ Computes total energy, forces, and virial in a non-iterative manner.
 
 from .base import (
     BaseModel, Field, ValidationError,
-    Optional, ASE_AVAILABLE, Atoms, EMT
+    Optional, Atoms, EMT
 )
 
 
@@ -77,19 +77,6 @@ def static_calculation(
             compute_forces=compute_forces,
             compute_virial=compute_virial
         )
-        
-        # Check ASE availability
-        if not ASE_AVAILABLE:
-            output = StaticCalculationOutput(
-                success=False,
-                total_energy=None,
-                energy_per_atom=None,
-                forces=None,
-                virial=None,
-                error="ASE library not installed",
-                message="Error: ASE library not installed. Install with: pip install ase"
-            )
-            return output.model_dump_json(indent=2)
         
         # Perform static calculation
         try:

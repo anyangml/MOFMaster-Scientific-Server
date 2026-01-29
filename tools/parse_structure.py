@@ -6,7 +6,7 @@ Load and validate different structure formats (CIF, XYZ, POSCAR) into ASE Atoms 
 
 from .base import (
     BaseModel, Field, field_validator, ValidationError,
-    Optional, StringIO, ase, ASE_AVAILABLE
+    Optional, StringIO, ase
 )
 
 
@@ -70,18 +70,6 @@ def parse_structure(data: str, format: Optional[str] = None) -> str:
     try:
         # Validate input
         validated_input = ParseStructureInput(data=data, format=format)
-        
-        # Check ASE availability
-        if not ASE_AVAILABLE:
-            output = ParseStructureOutput(
-                success=False,
-                atoms_dict=None,
-                num_atoms=None,
-                formula=None,
-                error="ASE library not installed",
-                message="Error: ASE library not installed. Install with: pip install ase"
-            )
-            return output.model_dump_json(indent=2)
         
         # Parse structure
         try:
