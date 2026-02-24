@@ -7,7 +7,7 @@ Computes total energy, forces, and virial in a non-iterative manner.
 
 from .base import (
     BaseModel, Field, ValidationError,
-    Optional, Atoms, DP
+    Optional, Atoms, DP, os, DATA_DIR
 )
 
 
@@ -87,7 +87,7 @@ def static_calculation(
                 pbc=validated_input.atoms_dict.get("pbc", [False, False, False])
             )
             
-            atoms.calc = DP("forcefield.ckpt.pt")
+            atoms.calc = DP(os.path.join(DATA_DIR, "forcefield.ckpt.pt"))
             
             # Compute total energy (static, non-iterative)
             total_energy = atoms.get_potential_energy()

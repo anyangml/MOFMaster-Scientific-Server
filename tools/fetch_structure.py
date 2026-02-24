@@ -5,9 +5,8 @@ Retrieve MOF structural information from the QMOF database using the MOF ID.
 """
 
 import json
-import os
 from pydantic import ValidationError
-from .base import BaseModel, Field, Optional
+from .base import BaseModel, Field, Optional, os, DATA_DIR
 
 class FetchStructureInput(BaseModel):
     """Input model for structure fetching."""
@@ -43,15 +42,17 @@ def fetch_structure(mof_id: str) -> str:
         
         # Load caches if not loaded
         if _qmof_metadata_cache is None:
-            if not os.path.exists("qmof.json"):
-                raise FileNotFoundError("qmof.json not found in the current directory.")
-            with open("qmof.json", "r") as f:
+            qmof_path = os.path.join(DATA_DIR, "qmof.json")
+            if not os.path.exists(qmof_path):
+                raise FileNotFoundError(f"{qmof_path} not found.")
+            with open(qmof_path, "r") as f:
                 _qmof_metadata_cache = {entry['qmof_id']: entry for entry in json.load(f)}
                 
         if _qmof_structs_cache is None:
-            if not os.path.exists("qmof_structure_data.json"):
-                raise FileNotFoundError("qmof_structure_data.json not found in the current directory.")
-            with open("qmof_structure_data.json", "r") as f:
+            qmof_structs_path = os.path.join(DATA_DIR, "qmof_structure_data.json")
+            if not os.path.exists(qmof_structs_path):
+                raise FileNotFoundError(f"{qmof_structs_path} not found.")
+            with open(qmof_structs_path, "r") as f:
                 _qmof_structs_cache = {entry['qmof_id']: entry['structure'] for entry in json.load(f)}
                 
         # Fetch data

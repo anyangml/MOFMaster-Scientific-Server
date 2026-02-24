@@ -7,7 +7,7 @@ for MOFs using a DPA-based property model, fine-tuned specifically for bandgap r
 
 from .base import (
     BaseModel, Field, ValidationError,
-    Optional, Atoms, DeepProperty
+    Optional, Atoms, DeepProperty, os, DATA_DIR
 )
 
 
@@ -59,7 +59,7 @@ def predict_bandgap(atoms_dict: dict) -> str:
             atom_types = [x - 1 for x in atom_numbers]
             
             # The tool uses a DPA property model for bandgap regression
-            model = DeepProperty("bandgap.ckpt.pt")
+            model = DeepProperty(os.path.join(DATA_DIR, "bandgap.ckpt.pt"))
             
             # Predict bandgap value
             bandgap_val = model.eval(coords=coords, cells=cells, atom_types=atom_types)[0][0][0]

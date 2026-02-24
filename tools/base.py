@@ -4,6 +4,7 @@ Base module for MOF tools.
 Provides common imports, constants, and base classes used across all tools.
 """
 
+import os
 from io import StringIO
 from typing import List, Optional
 
@@ -18,6 +19,8 @@ from ase.constraints import FixSymmetry
 from deepmd.calculator import DP
 from deepmd.pt.infer.deep_eval import DeepProperty
 
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+
 __all__ = ['Atoms', 'EMT', 'BFGS', 'LBFGS', 'FIRE', 'FrechetCellFilter', 'FixSymmetry',
            'BaseModel', 'Field', 'field_validator', 'ValidationError', 
-           'ConfigDict', 'Optional', 'List', 'StringIO', 'ase', 'DP', 'DeepProperty']
+           'ConfigDict', 'Optional', 'List', 'StringIO', 'ase', 'DP', 'DeepProperty', 'os', 'DATA_DIR']
