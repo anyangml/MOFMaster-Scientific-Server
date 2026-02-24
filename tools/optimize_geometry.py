@@ -6,7 +6,7 @@ Perform structure relaxation for MOFs using DPA machine-learning force fields.
 
 from .base import (
     BaseModel, Field, field_validator, ValidationError,
-    Optional, Atoms, DP, BFGS, LBFGS, FIRE, FrechetCellFilter, FixSymmetry
+    Optional, Atoms, DP, BFGS, LBFGS, FIRE, FrechetCellFilter, FixSymmetry, os, DATA_DIR
 )
 
 
@@ -116,7 +116,7 @@ def optimize_geometry(
                 pbc=validated_input.atoms_dict.get("pbc", [False, False, False])
             )
             
-            atoms.calc = DP("forcefield.ckpt.pt")
+            atoms.calc = DP(os.path.join(DATA_DIR, "forcefield.ckpt.pt"))
             
             # Get initial energy and forces
             initial_energy = atoms.get_potential_energy()
