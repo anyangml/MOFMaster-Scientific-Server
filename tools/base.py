@@ -16,8 +16,8 @@ from ase.optimize import BFGS, LBFGS, FIRE
 from ase.filters import FrechetCellFilter
 from ase.constraints import FixSymmetry
 from deepmd.calculator import DP
-
+from deepmd.pt.infer.deep_eval import DeepProperty
 
 __all__ = ['Atoms', 'EMT', 'BFGS', 'LBFGS', 'FIRE', 'FrechetCellFilter', 'FixSymmetry',
            'BaseModel', 'Field', 'field_validator', 'ValidationError', 
-           'ConfigDict', 'Optional', 'List', 'StringIO', 'ase', 'DP']
+           'ConfigDict', 'Optional', 'List', 'StringIO', 'ase', 'DP', 'DeepProperty']

@@ -13,11 +13,13 @@ This package provides three main tools:
 from .parse_structure import parse_structure
 from .static_calculation import static_calculation
 from .optimize_geometry import optimize_geometry
+from .predict_bandgap import predict_bandgap
 
 __all__ = [
     'parse_structure',
     'static_calculation',
     'optimize_geometry',
+    'predict_bandgap',
 ]
 
 __version__ = '1.0.0'

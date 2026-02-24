@@ -116,7 +116,7 @@ def optimize_geometry(
                 pbc=validated_input.atoms_dict.get("pbc", [False, False, False])
             )
             
-            atoms.calc = DP("model.ckpt.pt")
+            atoms.calc = DP("forcefield.ckpt.pt")
             
             # Get initial energy and forces
             initial_energy = atoms.get_potential_energy()

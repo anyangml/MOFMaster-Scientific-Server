@@ -9,7 +9,6 @@ tools:
     tags:
       - energy
       - static
-      - dpa
       - force
       - virial
     version: "1.0.0"
@@ -32,6 +31,16 @@ tools:
       - optimization
       - geometry
       - structure
-      - dpa
       - relaxation
+    version: "1.0.0"
+
+  - name: Bandgap Predictor
+    description: The bandgap predictor tool provides electronic bandgap prediction for MOFs using a DPA-based property model.
+    category: CALCULATION
+    function_name: predict_bandgap
+    tags:
+      - bandgap
+      - prediction
+      - property
+      - electronic
     version: "1.0.0"

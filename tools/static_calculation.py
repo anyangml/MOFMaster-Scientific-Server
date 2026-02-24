@@ -87,7 +87,7 @@ def static_calculation(
                 pbc=validated_input.atoms_dict.get("pbc", [False, False, False])
             )
             
-            atoms.calc = DP("model.ckpt.pt")
+            atoms.calc = DP("forcefield.ckpt.pt")
             
             # Compute total energy (static, non-iterative)
             total_energy = atoms.get_potential_energy()
