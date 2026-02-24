@@ -6,7 +6,7 @@ Perform structure relaxation for MOFs using DPA machine-learning force fields.
 
 from .base import (
     BaseModel, Field, field_validator, ValidationError,
-    Optional, Atoms, EMT, BFGS, LBFGS, FIRE, FrechetCellFilter, FixSymmetry
+    Optional, Atoms, DP, BFGS, LBFGS, FIRE, FrechetCellFilter, FixSymmetry
 )
 
 
@@ -32,7 +32,7 @@ class OptimizeGeometryInput(BaseModel):
         description="Optimizer type: BFGS, LBFGS, or FIRE"
     )
     relax_cell: bool = Field(
-        False,
+        True,
         description="Whether to relax lattice parameters"
     )
     fix_symmetry: bool = Field(
@@ -80,9 +80,6 @@ def optimize_geometry(
     """
     Perform geometry optimization using DPA machine-learning force fields.
     
-    Note: This implementation uses EMT calculator as a placeholder.
-    In production, replace with actual DPA model calculator.
-    
     Args:
         atoms_dict: ASE Atoms object as dictionary (from parse_structure output)
         fmax: Force convergence threshold in eV/Å
@@ -119,13 +116,10 @@ def optimize_geometry(
                 pbc=validated_input.atoms_dict.get("pbc", [False, False, False])
             )
             
-            # Set calculator (placeholder: EMT, replace with DPA in production)
-            atoms.calc = EMT()
+            atoms.calc = DP("model.ckpt.pt")
             
             # Get initial energy and forces
             initial_energy = atoms.get_potential_energy()
-            initial_forces = atoms.get_forces()
-            initial_fmax = np.max(np.abs(initial_forces))
             
             # Select optimizer
             optimizer_class = {

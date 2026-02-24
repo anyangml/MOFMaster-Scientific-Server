@@ -7,7 +7,7 @@ Computes total energy, forces, and virial in a non-iterative manner.
 
 from .base import (
     BaseModel, Field, ValidationError,
-    Optional, Atoms, EMT
+    Optional, Atoms, DP
 )
 
 
@@ -54,9 +54,6 @@ def static_calculation(
     This is a non-iterative calculation that computes total energy, forces,
     and virial directly from the DPA model. The structure is not modified.
     
-    Note: This implementation uses EMT calculator as a placeholder.
-    In production, replace with actual DPA model calculator.
-    
     Args:
         atoms_dict: ASE Atoms object as dictionary (from parse_structure output)
         normalize_per_atom: Whether to compute energy per atom
@@ -90,8 +87,7 @@ def static_calculation(
                 pbc=validated_input.atoms_dict.get("pbc", [False, False, False])
             )
             
-            # Set calculator (placeholder: EMT, replace with DPA in production)
-            atoms.calc = EMT()
+            atoms.calc = DP("model.ckpt.pt")
             
             # Compute total energy (static, non-iterative)
             total_energy = atoms.get_potential_energy()
