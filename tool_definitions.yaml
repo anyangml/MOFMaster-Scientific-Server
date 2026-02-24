@@ -44,3 +44,15 @@ tools:
       - property
       - electronic
     version: "1.0.0"
+
+  - name: Structure Fetcher
+    description: Retrieve MOF structural information from the QMOF database using the MOF ID. Returns ASE atom and metadata dictionary.
+    category: UTILS
+    function_name: fetch_structure
+    tags:
+      - search
+      - database
+      - qmof
+      - fetch
+      - structure
+    version: "1.0.0"

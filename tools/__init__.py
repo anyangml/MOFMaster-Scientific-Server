@@ -14,12 +14,14 @@ from .parse_structure import parse_structure
 from .static_calculation import static_calculation
 from .optimize_geometry import optimize_geometry
 from .predict_bandgap import predict_bandgap
+from .fetch_structure import fetch_structure
 
 __all__ = [
     'parse_structure',
     'static_calculation',
     'optimize_geometry',
     'predict_bandgap',
+    'fetch_structure',
 ]
 
 __version__ = '1.0.0'
