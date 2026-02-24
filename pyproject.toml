@@ -8,7 +8,10 @@ dependencies = [
     "ase",
     "pydantic>=2.0.0",
     "pyyaml>=6.0",
-    "bohr-agent-sdk"
+    "bohr-agent-sdk",
+    "deepmd-kit==3.1.0",
+    "torch>=2.1",
+    "pymatgen>=2023.0"
 ]
 
 [project.scripts]

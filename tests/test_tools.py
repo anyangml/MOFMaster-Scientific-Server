@@ -8,7 +8,7 @@ import json
 import pytest
 from typing import Dict, Any
 
-from tools import parse_structure, static_calculation, optimize_geometry
+from tools import parse_structure, static_calculation, optimize_geometry, predict_bandgap, fetch_structure
 from tool_registry import (
     ToolRegistry,
     ToolCategory,
@@ -308,13 +308,15 @@ class TestYAMLConfiguration:
         definitions = load_tool_definitions()
         
         # Check that we loaded the correct number of tools
-        assert len(definitions) == 3
+        assert len(definitions) == 5
         
         # Check that all expected tools are present
         tool_names = [d['name'] for d in definitions]
         assert 'Static Calculation' in tool_names
         assert 'Structure Parser' in tool_names
         assert 'Geometry Optimization' in tool_names
+        assert 'Bandgap Predictor' in tool_names
+        assert 'Structure Fetcher' in tool_names
     
     def test_tool_definition_structure(self):
         """Test that tool definitions have the correct structure."""
@@ -351,7 +353,7 @@ class TestYAMLConfiguration:
         register_tools_in_registry()
         
         # Verify all tools were registered
-        assert len(registry) == 3
+        assert len(registry) == 5
 
 
 class TestIntegration:
