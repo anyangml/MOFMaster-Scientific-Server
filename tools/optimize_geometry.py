@@ -76,7 +76,7 @@ def optimize_geometry(
     optimizer: str = "BFGS",
     relax_cell: bool = False,
     fix_symmetry: bool = True
-) -> str:
+) -> dict:
     """
     Perform geometry optimization using DPA machine-learning force fields.
     
@@ -88,7 +88,7 @@ def optimize_geometry(
         relax_cell: Whether to relax lattice parameters
         
     Returns:
-        JSON string containing optimization results with metadata
+        Dictionary containing optimization results with metadata
         
     Raises:
         ValidationError: If input validation fails
@@ -172,7 +172,7 @@ def optimize_geometry(
                 message=f"Optimization {'converged' if converged else 'did not converge'} after {opt.get_number_of_steps()} steps. "
                        f"Final fmax: {final_fmax:.4f} eV/Å, Energy: {final_energy:.4f} eV"
             )
-            return output.model_dump_json(indent=2)
+            return output.model_dump()
             
         except Exception as opt_error:
             output = OptimizeGeometryOutput(
@@ -182,7 +182,7 @@ def optimize_geometry(
                 error=str(opt_error),
                 message=f"Optimization error: {str(opt_error)}"
             )
-            return output.model_dump_json(indent=2)
+            return output.model_dump()
             
     except ValidationError as e:
         error_output = OptimizeGeometryOutput(
@@ -192,7 +192,7 @@ def optimize_geometry(
             error="Input validation error",
             message=f"Input validation error: {str(e)}"
         )
-        return error_output.model_dump_json(indent=2)
+        return error_output.model_dump()
     except Exception as e:
         error_output = OptimizeGeometryOutput(
             success=False,
@@ -201,4 +201,4 @@ def optimize_geometry(
             error="Unexpected error",
             message=f"Unexpected error: {str(e)}"
         )
-        return error_output.model_dump_json(indent=2)
+        return error_output.model_dump()

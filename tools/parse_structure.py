@@ -37,7 +37,7 @@ class ParseStructureOutput(BaseModel):
     message: str = Field(..., description="Human-readable result message")
 
 
-def parse_structure(data: str) -> str:
+def parse_structure(data: str) -> dict:
     """
     Load and validate structure data into ASE Atoms object.
     
@@ -45,7 +45,7 @@ def parse_structure(data: str) -> str:
         data: Structure file content as string or file path
         
     Returns:
-        JSON string containing parsed structure with validation
+        Dictionary containing parsed structure with validation
         
     Raises:
         ValidationError: If input validation fails
@@ -91,7 +91,7 @@ def parse_structure(data: str) -> str:
                 error=None,
                 message=f"Successfully parsed structure: {atoms.get_chemical_formula()} ({len(atoms)} atoms)"
             )
-            return output.model_dump_json(indent=2)
+            return output.model_dump()
             
         except Exception as parse_error:
             output = ParseStructureOutput(
@@ -102,7 +102,7 @@ def parse_structure(data: str) -> str:
                 error=str(parse_error),
                 message=f"Parsing error: {str(parse_error)}"
             )
-            return output.model_dump_json(indent=2)
+            return output.model_dump()
             
     except ValidationError as e:
         error_output = ParseStructureOutput(
@@ -113,7 +113,7 @@ def parse_structure(data: str) -> str:
             error="Input validation error",
             message=f"Input validation error: {str(e)}"
         )
-        return error_output.model_dump_json(indent=2)
+        return error_output.model_dump()
     except Exception as e:
         error_output = ParseStructureOutput(
             success=False,
@@ -123,4 +123,4 @@ def parse_structure(data: str) -> str:
             error="Unexpected error",
             message=f"Unexpected error: {str(e)}"
         )
-        return error_output.model_dump_json(indent=2)
+        return error_output.model_dump()

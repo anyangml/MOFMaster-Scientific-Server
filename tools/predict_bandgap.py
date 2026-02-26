@@ -27,7 +27,7 @@ class PredictBandgapOutput(BaseModel):
     message: str = Field(..., description="Human-readable result message")
 
 
-def predict_bandgap(atoms_dict: dict) -> str:
+def predict_bandgap(atoms_dict: dict) -> dict:
     """
     Predict the electronic bandgap of a MOF structure using a DPA-based property model.
     
@@ -35,7 +35,7 @@ def predict_bandgap(atoms_dict: dict) -> str:
         atoms_dict: ASE Atoms object as dictionary (from parse_structure output)
         
     Returns:
-        JSON string containing bandgap prediction result
+        Dictionary containing bandgap prediction result
         
     Raises:
         ValidationError: If input validation fails
@@ -70,7 +70,7 @@ def predict_bandgap(atoms_dict: dict) -> str:
                 error=None,
                 message=f"Bandgap prediction successful. Predicted value: {bandgap_val:.4f} eV"
             )
-            return output.model_dump_json(indent=2)
+            return output.model_dump()
             
         except Exception as calc_error:
             output = PredictBandgapOutput(
@@ -79,7 +79,7 @@ def predict_bandgap(atoms_dict: dict) -> str:
                 error=str(calc_error),
                 message=f"Prediction error: {str(calc_error)}"
             )
-            return output.model_dump_json(indent=2)
+            return output.model_dump()
             
     except ValidationError as e:
         error_output = PredictBandgapOutput(
@@ -88,7 +88,7 @@ def predict_bandgap(atoms_dict: dict) -> str:
             error="Input validation error",
             message=f"Input validation error: {str(e)}"
         )
-        return error_output.model_dump_json(indent=2)
+        return error_output.model_dump()
     except Exception as e:
         error_output = PredictBandgapOutput(
             success=False,
@@ -96,4 +96,4 @@ def predict_bandgap(atoms_dict: dict) -> str:
             error="Unexpected error",
             message=f"Unexpected error: {str(e)}"
         )
-        return error_output.model_dump_json(indent=2)
+        return error_output.model_dump()
