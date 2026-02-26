@@ -47,7 +47,7 @@ def static_calculation(
     normalize_per_atom: bool = False,
     compute_forces: bool = True,
     compute_virial: bool = False
-) -> str:
+) -> dict:
     """
     Perform static energy evaluation using DPA model without modifying geometry.
     
@@ -61,7 +61,7 @@ def static_calculation(
         compute_virial: Whether to compute virial tensor
         
     Returns:
-        JSON string containing static calculation results with validation
+        Dictionary containing static calculation results with validation
         
     Raises:
         ValidationError: If input validation fails
@@ -134,7 +134,7 @@ def static_calculation(
                 error=None,
                 message="Static calculation completed. " + ", ".join(msg_parts)
             )
-            return output.model_dump_json(indent=2)
+            return output.model_dump()
             
         except Exception as calc_error:
             output = StaticCalculationOutput(
@@ -146,7 +146,7 @@ def static_calculation(
                 error=str(calc_error),
                 message=f"Calculation error: {str(calc_error)}"
             )
-            return output.model_dump_json(indent=2)
+            return output.model_dump()
             
     except ValidationError as e:
         # Return validation error as JSON
@@ -159,7 +159,7 @@ def static_calculation(
             error="Input validation error",
             message=f"Input validation error: {str(e)}"
         )
-        return error_output.model_dump_json(indent=2)
+        return error_output.model_dump()
     except Exception as e:
         # Handle unexpected errors
         error_output = StaticCalculationOutput(
@@ -171,4 +171,4 @@ def static_calculation(
             error="Unexpected error",
             message=f"Unexpected error: {str(e)}"
         )
-        return error_output.model_dump_json(indent=2)
+        return error_output.model_dump()

@@ -24,7 +24,7 @@ class FetchStructureOutput(BaseModel):
 _qmof_metadata_cache = None
 _qmof_structs_cache = None
 
-def fetch_structure(mof_id: str) -> str:
+def fetch_structure(mof_id: str) -> dict:
     """
     Fetch MOF structural information and metadata from the QMOF database.
     
@@ -32,7 +32,7 @@ def fetch_structure(mof_id: str) -> str:
         mof_id: The unique identifier for the material (e.g., qmof-8b5bb88)
         
     Returns:
-        JSON string containing the structure and metadata
+        Dictionary containing the structure and metadata
     """
     global _qmof_metadata_cache, _qmof_structs_cache
     
@@ -61,7 +61,7 @@ def fetch_structure(mof_id: str) -> str:
                 success=False,
                 error="MOF ID not found",
                 message=f"MOF ID '{mof_id}' not found in the database."
-            ).model_dump_json(indent=2)
+            ).model_dump()
             
         metadata = _qmof_metadata_cache[mof_id]
         struct_dict = _qmof_structs_cache[mof_id]
@@ -86,17 +86,17 @@ def fetch_structure(mof_id: str) -> str:
             atoms_dict=atoms_dict,
             metadata=metadata,
             message=f"Successfully fetched structure and metadata for {mof_id}."
-        ).model_dump_json(indent=2)
+        ).model_dump()
         
     except ValidationError as e:
         return FetchStructureOutput(
             success=False,
             error="Input validation error",
             message=f"Input validation error: {str(e)}"
-        ).model_dump_json(indent=2)
+        ).model_dump()
     except Exception as e:
         return FetchStructureOutput(
             success=False,
             error=str(e),
             message=f"Error fetching structure: {str(e)}"
-        ).model_dump_json(indent=2)
+        ).model_dump()

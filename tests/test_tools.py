@@ -38,8 +38,7 @@ _atom_site_fract_z
 Cu1 Cu 0.0 0.0 0.0
 Cu2 Cu 0.5 0.5 0.5
 """
-        result = parse_structure(cif_data)
-        parsed = json.loads(result)
+        parsed = parse_structure(cif_data)
         
         assert parsed["success"] is True
         assert parsed["num_atoms"] == 2
@@ -48,16 +47,14 @@ Cu2 Cu 0.5 0.5 0.5
     
     def test_parse_structure_invalid_data(self):
         """Test parsing invalid data."""
-        result = parse_structure("invalid data")
-        parsed = json.loads(result)
+        parsed = parse_structure("invalid data")
         
         assert parsed["success"] is False
         assert parsed["error"] is not None
     
     def test_parse_structure_empty_data(self):
         """Test parsing empty data."""
-        result = parse_structure("   ")
-        parsed = json.loads(result)
+        parsed = parse_structure("   ")
         
         assert parsed["success"] is False
         assert "validation error" in parsed["message"].lower()
@@ -78,8 +75,7 @@ class TestStaticCalculation:
     def test_static_calculation_basic(self):
         """Test basic static calculation."""
         atoms_dict = self.get_test_atoms_dict()
-        result = static_calculation(atoms_dict)
-        parsed = json.loads(result)
+        parsed = static_calculation(atoms_dict)
         
         assert parsed["success"] is True
         assert parsed["total_energy"] is not None
@@ -88,8 +84,7 @@ class TestStaticCalculation:
     def test_static_calculation_with_forces(self):
         """Test static calculation with forces."""
         atoms_dict = self.get_test_atoms_dict()
-        result = static_calculation(atoms_dict, compute_forces=True)
-        parsed = json.loads(result)
+        parsed = static_calculation(atoms_dict, compute_forces=True)
         
         assert parsed["success"] is True
         assert parsed["forces"] is not None
@@ -98,8 +93,7 @@ class TestStaticCalculation:
     def test_static_calculation_normalize_per_atom(self):
         """Test static calculation with per-atom normalization."""
         atoms_dict = self.get_test_atoms_dict()
-        result = static_calculation(atoms_dict, normalize_per_atom=True)
-        parsed = json.loads(result)
+        parsed = static_calculation(atoms_dict, normalize_per_atom=True)
         
         assert parsed["success"] is True
         assert parsed["energy_per_atom"] is not None
@@ -108,8 +102,7 @@ class TestStaticCalculation:
     def test_static_calculation_with_virial(self):
         """Test static calculation with virial."""
         atoms_dict = self.get_test_atoms_dict()
-        result = static_calculation(atoms_dict, compute_virial=True)
-        parsed = json.loads(result)
+        parsed = static_calculation(atoms_dict, compute_virial=True)
         
         assert parsed["success"] is True
         # Virial may or may not be computed depending on calculator
@@ -117,8 +110,7 @@ class TestStaticCalculation:
     
     def test_static_calculation_invalid_atoms_dict(self):
         """Test static calculation with invalid atoms dict."""
-        result = static_calculation({"invalid": "data"})
-        parsed = json.loads(result)
+        parsed = static_calculation({"invalid": "data"})
         
         assert parsed["success"] is False
         assert parsed["error"] is not None
@@ -139,8 +131,7 @@ class TestGeometryOptimization:
     def test_optimize_geometry_basic(self):
         """Test basic geometry optimization."""
         atoms_dict = self.get_test_atoms_dict()
-        result = optimize_geometry(atoms_dict)
-        parsed = json.loads(result)
+        parsed = optimize_geometry(atoms_dict)
         
         assert parsed["success"] is True
         assert parsed["optimized_atoms_dict"] is not None
@@ -149,8 +140,7 @@ class TestGeometryOptimization:
     def test_optimize_geometry_metadata(self):
         """Test optimization metadata."""
         atoms_dict = self.get_test_atoms_dict()
-        result = optimize_geometry(atoms_dict, fmax=0.05, max_steps=10)
-        parsed = json.loads(result)
+        parsed = optimize_geometry(atoms_dict, fmax=0.05, max_steps=10)
         
         assert parsed["success"] is True
         metadata = parsed["metadata"]
@@ -165,23 +155,20 @@ class TestGeometryOptimization:
         atoms_dict = self.get_test_atoms_dict()
         
         for optimizer in ["BFGS", "LBFGS", "FIRE"]:
-            result = optimize_geometry(atoms_dict, optimizer=optimizer, max_steps=5)
-            parsed = json.loads(result)
+            parsed = optimize_geometry(atoms_dict, optimizer=optimizer, max_steps=5)
             assert parsed["success"] is True
     
     def test_optimize_geometry_invalid_optimizer(self):
         """Test with invalid optimizer."""
         atoms_dict = self.get_test_atoms_dict()
-        result = optimize_geometry(atoms_dict, optimizer="INVALID")
-        parsed = json.loads(result)
+        parsed = optimize_geometry(atoms_dict, optimizer="INVALID")
         
         assert parsed["success"] is False
         assert "validation error" in parsed["message"].lower()
     
     def test_optimize_geometry_invalid_atoms_dict(self):
         """Test optimization with invalid atoms dict."""
-        result = optimize_geometry({"invalid": "data"})
-        parsed = json.loads(result)
+        parsed = optimize_geometry({"invalid": "data"})
         
         assert parsed["success"] is False
         assert parsed["error"] is not None
@@ -189,8 +176,7 @@ class TestGeometryOptimization:
     def test_optimize_geometry_relax_cell(self):
         """Test geometry optimization with cell relaxation."""
         atoms_dict = self.get_test_atoms_dict()
-        result = optimize_geometry(atoms_dict, relax_cell=True, max_steps=2)
-        parsed = json.loads(result)
+        parsed = optimize_geometry(atoms_dict, relax_cell=True, max_steps=2)
         
         # This may fail if FrechetCellFilter is not available, but logic is correct
         assert parsed["success"] is True
@@ -199,8 +185,7 @@ class TestGeometryOptimization:
     def test_optimize_geometry_fix_symmetry(self):
         """Test geometry optimization with fix_symmetry."""
         atoms_dict = self.get_test_atoms_dict()
-        result = optimize_geometry(atoms_dict, fix_symmetry=True, max_steps=2)
-        parsed = json.loads(result)
+        parsed = optimize_geometry(atoms_dict, fix_symmetry=True, max_steps=2)
         
         assert parsed["success"] is True
 
@@ -378,14 +363,12 @@ _atom_site_fract_z
 Cu1 Cu 0.0 0.0 0.0
 Cu2 Cu 0.5 0.5 0.5
 """
-        parse_result = parse_structure(cif_data)
-        parsed = json.loads(parse_result)
+        parsed = parse_structure(cif_data)
         assert parsed["success"] is True
         
         # Calculate energy
         atoms_dict = parsed["atoms_dict"]
-        calc_result = static_calculation(atoms_dict, compute_forces=True)
-        calc = json.loads(calc_result)
+        calc = static_calculation(atoms_dict, compute_forces=True)
         assert calc["success"] is True
         assert calc["total_energy"] is not None
     
@@ -408,20 +391,17 @@ _atom_site_fract_z
 Cu1 Cu 0.0 0.0 0.0
 Cu2 Cu 0.5 0.5 0.5
 """
-        parse_result = parse_structure(cif_data)
-        parsed = json.loads(parse_result)
+        parsed = parse_structure(cif_data)
         assert parsed["success"] is True
         
         atoms_dict = parsed["atoms_dict"]
         
         # Static calculation
-        calc_result = static_calculation(atoms_dict)
-        calc = json.loads(calc_result)
+        calc = static_calculation(atoms_dict)
         assert calc["success"] is True
         
         # Geometry optimization
-        opt_result = optimize_geometry(atoms_dict, max_steps=5)
-        opt = json.loads(opt_result)
+        opt = optimize_geometry(atoms_dict, max_steps=5)
         assert opt["success"] is True
         assert opt["metadata"]["converged"] is not None
 
