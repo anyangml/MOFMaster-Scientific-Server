@@ -20,9 +20,8 @@ class FetchStructureOutput(BaseModel):
     error: Optional[str] = Field(None, description="Error message if fetch failed")
     message: str = Field(..., description="Human-readable result message")
 
-# Global caches for large JSON files to speed up subsequent queries
-_qmof_metadata_cache = None
-_qmof_structs_cache = None
+# Note: we use ijson below instead of global memory caches to avoid OOM
+# on limited-RAM hosts when searching through large JSON arrays.
 
 def fetch_structure(mof_id: str) -> dict:
     """
@@ -34,37 +33,42 @@ def fetch_structure(mof_id: str) -> dict:
     Returns:
         Dictionary containing the structure and metadata
     """
-    global _qmof_metadata_cache, _qmof_structs_cache
-    
     try:
         validated_input = FetchStructureInput(mof_id=mof_id)
         mof_id = validated_input.mof_id
         
-        # Load caches if not loaded
-        if _qmof_metadata_cache is None:
-            qmof_path = os.path.join(DATA_DIR, "qmof.json")
-            if not os.path.exists(qmof_path):
-                raise FileNotFoundError(f"{qmof_path} not found.")
-            with open(qmof_path, "r") as f:
-                _qmof_metadata_cache = {entry['qmof_id']: entry for entry in json.load(f)}
-                
-        if _qmof_structs_cache is None:
-            qmof_structs_path = os.path.join(DATA_DIR, "qmof_structure_data.json")
-            if not os.path.exists(qmof_structs_path):
-                raise FileNotFoundError(f"{qmof_structs_path} not found.")
-            with open(qmof_structs_path, "r") as f:
-                _qmof_structs_cache = {entry['qmof_id']: entry['structure'] for entry in json.load(f)}
-                
+        import ijson
+        
+        metadata = None
+        qmof_path = os.path.join(DATA_DIR, "qmof.json")
+        if not os.path.exists(qmof_path):
+            raise FileNotFoundError(f"{qmof_path} not found.")
+            
+        with open(qmof_path, "rb") as f:
+            for item in ijson.items(f, 'item'):
+                if item.get('qmof_id') == mof_id:
+                    metadata = item
+                    break
+                    
+        struct_dict = None
+        qmof_structs_path = os.path.join(DATA_DIR, "qmof_structure_data.json")
+        if not os.path.exists(qmof_structs_path):
+            raise FileNotFoundError(f"{qmof_structs_path} not found.")
+            
+        with open(qmof_structs_path, "rb") as f:
+            for item in ijson.items(f, 'item'):
+                if item.get('qmof_id') == mof_id:
+                    struct_dict = item.get('structure')
+                    break
+                    
         # Fetch data
-        if mof_id not in _qmof_metadata_cache or mof_id not in _qmof_structs_cache:
+        if metadata is None or struct_dict is None:
             return FetchStructureOutput(
                 success=False,
                 error="MOF ID not found",
                 message=f"MOF ID '{mof_id}' not found in the database."
             ).model_dump()
-            
-        metadata = _qmof_metadata_cache[mof_id]
-        struct_dict = _qmof_structs_cache[mof_id]
+        
         
         # We lazily import pymatgen to avoid initial cost or failure if uninstalled
         from pymatgen.core import Structure
