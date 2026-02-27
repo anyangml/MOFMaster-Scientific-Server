@@ -45,7 +45,7 @@ def fetch_structure(mof_id: str) -> dict:
             raise FileNotFoundError(f"{qmof_path} not found.")
             
         with open(qmof_path, "rb") as f:
-            for item in ijson.items(f, 'item'):
+            for item in ijson.items(f, 'item', use_float=True):
                 if item.get('qmof_id') == mof_id:
                     metadata = item
                     break
@@ -56,7 +56,7 @@ def fetch_structure(mof_id: str) -> dict:
             raise FileNotFoundError(f"{qmof_structs_path} not found.")
             
         with open(qmof_structs_path, "rb") as f:
-            for item in ijson.items(f, 'item'):
+            for item in ijson.items(f, 'item', use_float=True):
                 if item.get('qmof_id') == mof_id:
                     struct_dict = item.get('structure')
                     break
