@@ -59,7 +59,7 @@ def predict_bandgap(atoms_dict: dict) -> dict:
             atom_types = [x - 1 for x in atom_numbers]
             
             # The tool uses a DPA property model for bandgap regression
-            model = DeepProperty(os.path.join(DATA_DIR, "bandgap.ckpt.pt"))
+            model = DeepProperty(os.path.join(DATA_DIR, "bandgap.ckpt.pt"), head="property")
             
             # Predict bandgap value
             bandgap_val = model.eval(coords=coords, cells=cells, atom_types=atom_types)[0][0][0]
